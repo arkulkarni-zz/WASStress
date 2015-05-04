@@ -18,7 +18,7 @@ var transactionsProcessed = 0;
 var errorEvents = 0;
 
 var previousTime = new Date();
-setInterval(throughputCalculator, 10000);
+setInterval(throughputCalculator, 60000);
 
 var sourceBucketName = 's3stress-source';
 var sourceKeyName = 'FourMegFile.txt';
