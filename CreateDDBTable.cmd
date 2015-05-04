@@ -1,0 +1,1 @@
+aws dynamodb create-table --table-name S3StressResults --attribute-definitions AttributeName=Pid,AttributeType=S AttributeName=Timestamp,AttributeType=N --key-schema AttributeName=Pid,KeyType=HASH AttributeName=Timestamp,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=25,WriteCapacityUnits=2000
