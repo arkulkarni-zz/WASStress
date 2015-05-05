@@ -104,10 +104,6 @@ function throughputCalculator(){
   docDBClient.createDocument(collection._self, item, function(err, doc){
     if (err) {
       console.log(err); // an error occurred
-    } 
-    else
-    {
-      console.log(doc);
     }    
   });
 
