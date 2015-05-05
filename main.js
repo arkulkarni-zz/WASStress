@@ -41,7 +41,7 @@ function setupUploadLoop(){
     if (err) { throw err; }    
     else{
       previousTime = new Date();
-      setInterval(throughputCalculator, 5000);
+      setInterval(throughputCalculator, 60000);
       writeToAzure(data);
     }
   });  
