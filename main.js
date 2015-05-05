@@ -11,34 +11,39 @@ var path = require('path');
 
 AWS.config.loadFromPath(path.resolve(__dirname, 'config.json'));
 var s3 = new AWS.S3(); 
-var db = new AWS.DynamoDB();
-
-var dataProcessed = 0;
-var transactionsProcessed = 0;
-var errorEvents = 0;
-
-var previousTime = new Date();
-setInterval(throughputCalculator, 60000);
-
 var sourceBucketName = 's3stress-source';
 var sourceKeyName = 'FourMegFile.txt';
 var localFileName = 'downloaded' + '_' + pid +'.dat';
 
-var getParams = {Bucket: sourceBucketName, Key: sourceKeyName};
+var dataProcessed = 0;
+var transactionsProcessed = 0;
+var errorEvents = 0;
+var previousTime;
 
-var localFileStream = fs.createWriteStream(localFileName);
-var readstream = s3.getObject(getParams).createReadStream();
-readstream.pipe(localFileStream);
-readstream.on('end',function(){
-  setupUploadLoop();
-  
+var database;
+var collection;
+var DocumentClient = require('documentdb').DocumentClient;
+var docDBClient = new DocumentClient('https://amitkulwasstress.documents.azure.com:443/', {masterKey:process.env.AZURE_DOCDB_AUTH_KEY});
+
+setupDocumentDB('wasstress', 'wasstressresults', function(){  
+  var localFileStream = fs.createWriteStream(localFileName);
+  var getParams = {Bucket: sourceBucketName, Key: sourceKeyName};
+  var readstream = s3.getObject(getParams).createReadStream();
+  readstream.pipe(localFileStream);
+  readstream.on('end',function(){
+    setupUploadLoop();    
+  });
 });
+
 
 function setupUploadLoop(){
   fs.readFile(localFileName, function(err, data){
     if (err) { throw err; }    
-    else
+    else{
+      previousTime = new Date();
+      setInterval(throughputCalculator, 5000);
       writeToAzure(data);
+    }
   });  
 }
 
@@ -86,22 +91,23 @@ function throughputCalculator(){
                transactionThroughput,
                errorRate);
 
-  var putparams = {
-    Item: {
-      Pid: {'S': pid},
-      Timestamp: {'N': moment().format('x')},
-      DataThroughput: {'N': dataThroughput.toString()},
-      TransactionThroughput: {'N': transactionThroughput.toString()},
-      ErrorRate: {'N': errorRate.toString()},
-      Errors: {'N': errorEvents.toString()},      
-      Interval: {'N': timeInterval.toString()}
-    },
-    TableName: 'S3StressResults'
+  var item = {
+    Pid: pid,
+    Timestamp: moment().format('x'),
+    DataThroughput: dataThroughput.toString(),
+    TransactionThroughput: transactionThroughput.toString(),
+    ErrorRate: errorRate.toString(),
+    Errors: errorEvents.toString(),      
+    Interval: timeInterval.toString()
   };
 
-  db.putItem(putparams, function(err, data){
+  docDBClient.createDocument(collection._self, item, function(err, doc){
     if (err) {
-      console.log(err, err.stack); // an error occurred
+      console.log(err); // an error occurred
+    } 
+    else
+    {
+      console.log(doc);
     }    
   });
 
@@ -113,4 +119,44 @@ function throughputCalculator(){
 
 function getRandomInt (low, high) {
     return Math.floor(Math.random() * (high - low) + low);
+}
+
+function setupDocumentDB(databaseid, collectionid, callback){
+  var querySpec;
+  querySpec = {
+              query: 'SELECT * FROM root r WHERE r.id=@id',
+              parameters: [{
+                  name: '@id',
+                  value: databaseid
+              }]
+          };
+
+  docDBClient.queryDatabases(querySpec).toArray(function (err, results) {
+    if (err){
+      console.log(err);
+      throw err;    
+    }
+    else{
+      database = results[0];
+
+      querySpec = {
+                  query: 'SELECT * FROM root r WHERE r.id=@id',
+                  parameters: [{
+                      name: '@id',
+                      value: collectionid
+                  }]
+              };
+
+      docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
+        if (err){
+          console.log(err);
+          throw err;    
+        }
+        else{
+          collection = results[0];
+          callback();
+        }
+      });
+    }
+  });
 }

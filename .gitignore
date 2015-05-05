@@ -4,3 +4,4 @@ dist
 Thumbs.db
 config.json
 downloaded*.dat
+setenv.cmd

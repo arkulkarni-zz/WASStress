@@ -6,8 +6,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1.23", 
+    "aws-sdk": "^2.1.23",
     "azure-storage": "^0.4.3",
+    "documentdb": "^1.0.0",
     "moment": "^2.10.2",
     "node-uuid": "^1.4.3"
   }
