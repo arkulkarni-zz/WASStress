@@ -57,7 +57,7 @@ function writeToAzure(payload){
 
   blobService.createBlockBlobFromText(containerName, keyName, payload, function(error, result, response){
     if(error){
-      console.log(err);
+      console.log(error);
       ++errorEvents;
     }
     else{
