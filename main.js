@@ -31,6 +31,7 @@ setupDocumentDB('wasstress', 'wasstressresults', function(){
   var readstream = s3.getObject(getParams).createReadStream();
   readstream.pipe(localFileStream);
   readstream.on('end',function(){
+    console.log(pid + ' ' + 'successfully downloaded payload file');
     setupUploadLoop();    
   });
 });
@@ -133,6 +134,7 @@ function setupDocumentDB(databaseid, collectionid, callback){
       throw err;    
     }
     else{
+      console.log(pid + ' ' +'successfully got documentdb');
       database = results[0];
 
       querySpec = {
@@ -149,6 +151,7 @@ function setupDocumentDB(databaseid, collectionid, callback){
           throw err;    
         }
         else{
+          console.log(pid + ' ' +'successfully got document collection');
           collection = results[0];
           callback();
         }
