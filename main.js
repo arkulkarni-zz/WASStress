@@ -19,6 +19,7 @@ var dataProcessed = 0;
 var transactionsProcessed = 0;
 var errorEvents = 0;
 var previousTime;
+var operationLatency = 0;
 
 var database;
 var collection;
@@ -56,14 +57,18 @@ function writeToAzure(payload){
   var keyPrefix = String('000000000' + getRandomInt(1, 1000000000)).slice(-9);
   var keyName = folderPrefix + keyPrefix + '_' + pid + '_' + sourceKeyName;
 
+  var begintime = moment();
   blobService.createBlockBlobFromText(containerName, keyName, payload, function(error, result, response){
+    var endtime = moment();
     if(error){
       console.log(error);
       ++errorEvents;
     }
     else{
+      var currentOperationLatency = endtime.diff(begintime);
+      operationLatency = ((operationLatency * transactionsProcessed) + currentOperationLatency) / (transactionsProcessed + 1);
       ++transactionsProcessed;
-      dataProcessed += payload.length;
+      dataProcessed += payload.length;      
     }
 
     // Recurse in all cases (error or not)
@@ -82,7 +87,7 @@ function throughputCalculator(){
   if((transactionsProcessed + errorEvents) != 0) {
     errorRate = errorEvents / (transactionsProcessed + errorEvents) * 100;
   }
-  console.log('Pid: %s, Data Processed: %d, Transactions Processed: %d, Time Interval: %d, Errors: %d, Data Throughput: %d, Transaction Throughput: %d, Error Rate: %d\%',
+  console.log('Pid: %s, Data Processed: %d, Transactions Processed: %d, Time Interval: %d, Errors: %d, Data Throughput: %d, Transaction Throughput: %d, Error Rate: %d\%, Operation Latency: %d',
                pid,
                dataProcessed, 
                transactionsProcessed,
@@ -90,7 +95,8 @@ function throughputCalculator(){
                errorEvents,
                dataThroughput, 
                transactionThroughput,
-               errorRate);
+               errorRate,
+               operationLatency);
 
   var item = {
     Pid: pid,
@@ -99,7 +105,8 @@ function throughputCalculator(){
     TransactionThroughput: transactionThroughput.toString(),
     ErrorRate: errorRate.toString(),
     Errors: errorEvents.toString(),      
-    Interval: timeInterval.toString()
+    Interval: timeInterval.toString(),
+    OperationLatency: operationLatency.toString()
   };
 
   docDBClient.createDocument(collection._self, item, function(err, doc){
