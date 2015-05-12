@@ -6,6 +6,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "attempt": "^1.0.1",
     "aws-sdk": "^2.1.23",
     "azure-storage": "^0.4.3",
     "documentdb": "^1.0.0",

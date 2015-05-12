@@ -128,34 +128,74 @@ function setupDocumentDB(databaseid, collectionid, callback){
               }]
           };
 
-  docDBClient.queryDatabases(querySpec).toArray(function (err, results) {
-    if (err){
-      console.log(err);
-      throw err;    
-    }
-    else{
-      console.log(pid + ' ' +'successfully got documentdb');
-      database = results[0];
+  var attempt = require('attempt');
+  attempt(
+    { retries: 5, interval: 1000 },
+    function(attempts) {    
+        if(attempts)
+          console.log('This is retry #%d to connect to documentdb',attempts);
+        docDBClient.queryDatabases(querySpec).toArray(this);
+    },
+    function(err, results) {
+      if (err){
+        console.log(err);        
+        throw err;    
+      }
+      else{
+        console.log(pid + ' ' +'successfully got documentdb');
+        database = results[0];
 
-      querySpec = {
-                  query: 'SELECT * FROM root r WHERE r.id=@id',
-                  parameters: [{
-                      name: '@id',
-                      value: collectionid
-                  }]
-              };
+        querySpec = {
+                    query: 'SELECT * FROM root r WHERE r.id=@id',
+                    parameters: [{
+                        name: '@id',
+                        value: collectionid
+                    }]
+                };
 
-      docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
-        if (err){
-          console.log(err);
-          throw err;    
-        }
-        else{
-          console.log(pid + ' ' +'successfully got document collection');
-          collection = results[0];
-          callback();
-        }
-      });
+        docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
+          if (err){
+            console.log(err);
+            throw err;    
+          }
+          else{
+            console.log(pid + ' ' +'successfully got document collection');
+            collection = results[0];
+            callback();
+          }
+        });
+      }
     }
-  });
+  );
+
+  // docDBClient.queryDatabases(querySpec).toArray(function (err, results) {
+  //   if (err){
+  //     console.log(err);
+  //     throw err;    
+  //   }
+  //   else{
+  //     console.log(pid + ' ' +'successfully got documentdb');
+  //     database = results[0];
+
+  //     querySpec = {
+  //                 query: 'SELECT * FROM root r WHERE r.id=@id',
+  //                 parameters: [{
+  //                     name: '@id',
+  //                     value: collectionid
+  //                 }]
+  //             };
+
+  //     docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
+  //       if (err){
+  //         console.log(err);
+  //         throw err;    
+  //       }
+  //       else{
+  //         console.log(pid + ' ' +'successfully got document collection');
+  //         collection = results[0];
+  //         callback();
+  //       }
+  //     });
+  //   }
+  // });
 }
