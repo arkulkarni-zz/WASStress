@@ -12,7 +12,7 @@ var path = require('path');
 AWS.config.loadFromPath(path.resolve(__dirname, 'config.json'));
 var s3 = new AWS.S3(); 
 var sourceBucketName = 's3stress-source';
-var sourceKeyName = 'FourMegFile.txt';
+var sourceKeyName = 'OneKBFile.txt';
 var localFileName = 'downloaded' + '_' + pid +'.dat';
 
 var dataProcessed = 0;
