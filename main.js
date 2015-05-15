@@ -6,7 +6,7 @@ var azureStorage = require('azure-storage');
 var blobService = azureStorage.createBlobService();
 var AWS = require('aws-sdk'); 
 var uuid = require('node-uuid');
-var pid = uuid.v4();
+//var pid = uuid.v4();
 var pid = require('os').hostname() + '#' + process.argv[2];
 var path = require('path');
 
@@ -61,7 +61,8 @@ function writeToAzure(payload){
   var begintime = moment();
   blobService.createBlockBlobFromText(containerName, keyName, payload, function(error, result, response){
     var endtime = moment();
-    if(error){
+    if(error){      
+      console.log(pid + ' Error in createBlockBlobFromText');
       console.log(error);
       ++errorEvents;
     }
@@ -112,6 +113,7 @@ function throughputCalculator(){
 
   docDBClient.createDocument(collection._self, item, function(err, doc){
     if (err) {
+      console.log(pid + ' Error in createDocument');
       console.log(err); // an error occurred
     }    
   });
@@ -146,6 +148,7 @@ function setupDocumentDB(databaseid, collectionid, callback){
     },
     function(err, results) {
       if (err){
+        console.log(pid + ' Error in queryDatabases');
         console.log(err);        
         throw err;    
       }
@@ -163,6 +166,7 @@ function setupDocumentDB(databaseid, collectionid, callback){
 
         docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
           if (err){
+            console.log(pid + ' Error in queryCollections');
             console.log(err);
             throw err;    
           }
@@ -174,36 +178,4 @@ function setupDocumentDB(databaseid, collectionid, callback){
         });
       }
     }
-  );
-
-  // docDBClient.queryDatabases(querySpec).toArray(function (err, results) {
-  //   if (err){
-  //     console.log(err);
-  //     throw err;    
-  //   }
-  //   else{
-  //     console.log(pid + ' ' +'successfully got documentdb');
-  //     database = results[0];
-
-  //     querySpec = {
-  //                 query: 'SELECT * FROM root r WHERE r.id=@id',
-  //                 parameters: [{
-  //                     name: '@id',
-  //                     value: collectionid
-  //                 }]
-  //             };
-
-  //     docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
-  //       if (err){
-  //         console.log(err);
-  //         throw err;    
-  //       }
-  //       else{
-  //         console.log(pid + ' ' +'successfully got document collection');
-  //         collection = results[0];
-  //         callback();
-  //       }
-  //     });
-  //   }
-  // });
-}
+  );  
