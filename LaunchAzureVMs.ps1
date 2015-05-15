@@ -9,7 +9,7 @@ New-AzureService -ServiceName $servicename -Location $location -Label $servicena
 
 #$vmsize = "Large"
 #$imagename = "WASStress-4MBx8-V2"
-$vmsize = "Standard_D13"
+$vmsize = "A9"
 $imagename = "WASStress-1KBx100"
 $un = "arkulkarni"
 $pwd = "Shasta9075"

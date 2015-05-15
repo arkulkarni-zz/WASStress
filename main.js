@@ -165,18 +165,25 @@ function setupDocumentDB(databaseid, collectionid, callback){
                     }]
                 };
 
-        docDBClient.queryCollections(database._self, querySpec).toArray(function (err, results) {
-          if (err){
-            console.log(pid + ' Error in queryCollections');
-            console.log(err);
-            throw err;    
-          }
-          else{
-            console.log(pid + ' ' +'successfully got document collection');
-            collection = results[0];
-            callback();
-          }
-        });
+        attempt(
+          { retries: 5, interval: 1000 },
+          function(attempts) {    
+              if(attempts)
+                console.log('This is retry #%d to connect to get documentdb collection', attempts);              
+              docDBClient.queryCollections(database._self, querySpec).toArray(this);
+          },
+          function(err, results){
+            if (err){
+              console.log(pid + ' Error in queryCollections');
+              console.log(err);
+              throw err;    
+            }
+            else{
+              console.log(pid + ' ' +'successfully got document collection');
+              collection = results[0];
+              callback();
+            }
+          });        
       }
     }
   )};
