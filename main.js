@@ -7,7 +7,8 @@ var blobService = azureStorage.createBlobService();
 var AWS = require('aws-sdk'); 
 var uuid = require('node-uuid');
 //var pid = uuid.v4();
-var pid = require('os').hostname() + '#' + process.argv[2];
+var os = require('os');
+var pid = os.hostname() + '#' + process.argv[2];
 var path = require('path');
 
 AWS.config.loadFromPath(path.resolve(__dirname, 'config.json'));
@@ -178,4 +179,4 @@ function setupDocumentDB(databaseid, collectionid, callback){
         });
       }
     }
-  );  
+  )};
